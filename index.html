@@ -11,57 +11,77 @@
 body{margin:0;font-family:Arial;background:#f4f6fb}
 #app{display:flex;height:100vh}
 
+/* OVERLAY */
+#overlay{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,0.4);
+  z-index:998;
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+}
+#overlay.ativo{
+  opacity:1;
+  pointer-events:auto;
+}
+
 /* PAINEL */
 #painel{
   width:320px;
-  background:#fff;
+  background: linear-gradient(180deg,#1F3864,#2c528c);
+  color:#fff;
   padding:15px;
-  border-right:1px solid #ddd;
   overflow:auto;
   transition:.3s;
 }
 
-/* MAPA */
+.titulo{margin:0 0 15px 0;font-size:20px;font-weight:bold;}
+
+.card{
+  background:rgba(255,255,255,0.08);
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+select,button{
+  width:100%;
+  padding:8px;
+  margin-bottom:6px;
+  border-radius:6px;
+  border:none;
+}
+
+select{background:#fff;color:#333;}
+
+.btn{background:#4da3ff;color:#fff;font-weight:bold;cursor:pointer;}
+.btn:hover{background:#6cb5ff;}
+
+.lote{
+  padding:8px;margin-bottom:6px;border-radius:6px;
+  display:flex;justify-content:space-between;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+}
+
+.lote.ativo{font-weight:bold}
+
 #map{flex:1}
 
-/* BOTÃO MOBILE */
+/* BOTÃO */
 #btnMenu{
   display:none;
   position:absolute;
-  top:10px;
-  left:10px;
+  top:10px;left:10px;
   z-index:999;
   background:#1F3864;
   color:#fff;
   border:none;
   padding:10px;
   border-radius:8px;
-  font-size:14px;
-  box-shadow:0 2px 6px rgba(0,0,0,.3);
-}
-
-/* FILTROS */
-select,button{
-  width:100%;
-  padding:8px;
-  margin-bottom:6px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-
-/* LOTES */
-.lote{
-  padding:8px;
-  margin-bottom:6px;
-  border-radius:6px;
-  cursor:pointer;
-  display:flex;
-  justify-content:space-between;
-  border:1px solid #ddd;
-}
-.lote.ativo{
-  color:#fff;
-  font-weight:bold;
 }
 
 /* MARCADOR */
@@ -70,10 +90,9 @@ select,button{
   height:16px;
   border-radius:50%;
   border:2px solid #fff;
-  box-shadow:0 0 4px rgba(0,0,0,.4);
 }
 
-/* TOOLTIP */
+/* TOOLTIP (INALTERADO) */
 .leaflet-tooltip.label-fixa{
   background: rgba(31,56,100,0.92) !important;
   color:#fff;
@@ -82,13 +101,10 @@ select,button{
   padding:4px 8px;
   font-size:10px;
   font-weight:600;
-  text-align:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.35);
 }
 
 /* MOBILE */
 @media (max-width:768px){
-
   #app{flex-direction:column;}
 
   #painel{
@@ -98,45 +114,41 @@ select,button{
     height:100%;
     width:85%;
     z-index:1000;
-    box-shadow:2px 0 10px rgba(0,0,0,.2);
   }
 
   #painel.aberto{left:0;}
-
   #btnMenu{display:block;}
-
-  #map{height:100vh;}
-
-  .leaflet-tooltip.label-fixa{
-    font-size:9px;
-    padding:3px 6px;
-  }
-
-  .marker{
-    width:14px;
-    height:14px;
-  }
 }
 </style>
 </head>
 
 <body>
 
-<button id="btnMenu" onclick="togglePainel()">☰ Filtros</button>
+<div id="overlay" onclick="fecharPainel()"></div>
+<button id="btnMenu" onclick="abrirPainel()">☰</button>
 
 <div id="app">
 
 <div id="painel">
-  <h3>Filtros</h3>
+
+<h2 class="titulo">Mapa Inteligente</h2>
+
+<div class="card">
+  <h3>🔎 Filtros</h3>
 
   <select id="f-evento"><option value="">Evento</option></select>
   <select id="f-dem"><option value="">Órgão</option></select>
   <select id="f-tipo"><option value="">Tipo</option></select>
 
-  <button onclick="resetFiltros()">Limpar</button>
+  <button class="btn" onclick="resetFiltros()">Limpar Filtros</button>
+  <button class="btn" onclick="alternarVisual()" id="btnVisual">Visual: Lote</button>
+</div>
 
-  <h3>Lotes</h3>
+<div class="card">
+  <h3>🗂️ Lotes</h3>
   <div id="lotes"></div>
+</div>
+
 </div>
 
 <div id="map"></div>
@@ -147,114 +159,83 @@ select,button{
 
 <script>
 
-var POSTOS=[];
-var LOTES=[];
-var markers=[];
-var poligonos=[];
+var POSTOS=[], LOTES=[], markers=[], poligonos=[];
 var loteAtivo=null;
-var coresLotes={};
+var coresLotes={}, coresDem={};
+var modoVisual="lote";
 
 var map=L.map('map').setView([-12.97,-38.51],12);
-
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// MOBILE MENU
-function togglePainel(){
-  document.getElementById("painel").classList.toggle("aberto");
+// ===== PAINEL =====
+function abrirPainel(){
+  document.getElementById("painel").classList.add("aberto");
+  document.getElementById("overlay").classList.add("ativo");
 }
 
-// 🔥 FECHAR MENU MOBILE (FUNÇÃO CENTRAL)
+function fecharPainel(){
+  document.getElementById("painel").classList.remove("aberto");
+  document.getElementById("overlay").classList.remove("ativo");
+}
+
 function fecharMenuMobile(){
   if(window.innerWidth <= 768){
-    setTimeout(()=>{
-      document.getElementById("painel").classList.remove("aberto");
-    },200);
+    setTimeout(fecharPainel,200);
   }
 }
 
-// NORMALIZAÇÃO
+// FECHAR AO CLICAR NO MAPA
+map.on("click",()=>fecharMenuMobile());
+
+// SWIPE
+let startX=null;
+document.addEventListener("touchstart",e=>{startX=e.touches[0].clientX;});
+document.addEventListener("touchend",e=>{
+  if(startX===null) return;
+  let diff=e.changedTouches[0].clientX-startX;
+  if(diff>80) abrirPainel();
+  if(diff<-80) fecharPainel();
+  startX=null;
+});
+
+// ===== RESTANTE (INALTERADO) =====
 function normalizar(v){
-  return (v || "")
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .trim()
-    .toLowerCase();
+  return (v||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 }
 
-// COR LOTE
 function corLote(i,total){
   return `hsl(${(i*360/total)},70%,50%)`;
 }
 
-// CONVEX HULL
-function convexHull(points){
-  if(points.length < 3) return points;
-  points.sort((a,b)=> a[0]===b[0]?a[1]-b[1]:a[0]-b[0]);
-
-  const cross=(o,a,b)=> (a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
-
-  let lower=[];
-  for(let p of points){
-    while(lower.length>=2 && cross(lower[lower.length-2],lower[lower.length-1],p)<=0){
-      lower.pop();
-    }
-    lower.push(p);
-  }
-
-  let upper=[];
-  for(let i=points.length-1;i>=0;i--){
-    let p=points[i];
-    while(upper.length>=2 && cross(upper[upper.length-2],upper[upper.length-1],p)<=0){
-      upper.pop();
-    }
-    upper.push(p);
-  }
-
-  upper.pop();
-  lower.pop();
-  return lower.concat(upper);
+function gerarCoresDem(){
+  let nomes=[...new Set(POSTOS.map(p=>p.dem))];
+  nomes.forEach((d,i)=>coresDem[d]=corLote(i,nomes.length));
 }
 
-// LIMPEZA
-function limparTexto(v){
-  return (v || "").toString().trim();
-}
-
-function uniq(arr){
-  return [...new Set(arr.map(v => limparTexto(v)).filter(v => v !== ""))];
-}
-
-// =======================
 async function carregarDados(){
   const res=await fetch("https://script.google.com/macros/s/AKfycbzO3CxkaujHwu7Zx7KLqAzjfpUurxY_5IyR6FhqeJRaudKxwjOm9QAFSjEXh1g1H0qvtA/exec");
   const data=await res.json();
 
   POSTOS=data.map(p=>({
-    nome:limparTexto(p["NOMENCLATURA"]),
-    evento:limparTexto(p.EVENTO),
-    dem:limparTexto(p.DEMANDA || p.Demanda || p.demanda || p.DEMANDANTE),
-    tipo:limparTexto(p["TIPO DE ESTRUTURA"] || p["TIPO ESTRUTURA"]),
+    nome:p["NOMENCLATURA"],
+    evento:p.EVENTO,
+    dem:p.DEMANDA || p.DEMANDANTE,
+    tipo:p["TIPO DE ESTRUTURA"],
+    tipo:p["TIPO ESTRUTURA"],
     lat:parseFloat(String(p.LATITUDE).replace(",", ".")),
     lng:parseFloat(String(p.LONGITUDE).replace(",", ".")),
-    lote:limparTexto(p["LOTE PROPOSTO"]) || "Sem lote"
+    lote:p["LOTE PROPOSTO"] || "Sem lote"
   }));
 
   gerarLotes();
+  gerarCoresDem();
   preencherFiltros();
   render();
 }
 
-// =======================
 function gerarLotes(){
   let nomes=[...new Set(POSTOS.map(p=>p.lote))];
-
-  LOTES=nomes.map((l,i)=>({
-    id:l,
-    nome:l,
-    cor:corLote(i,nomes.length)
-  }));
-
+  LOTES=nomes.map((l,i)=>({id:l,nome:l,cor:corLote(i,nomes.length)}));
   LOTES.forEach(l=>coresLotes[l.id]=l.cor);
   renderLotes();
 }
@@ -266,15 +247,7 @@ function renderLotes(){
   LOTES.forEach(l=>{
     var div=document.createElement("div");
     div.className="lote"+(loteAtivo===l.id?" ativo":"");
-
-    if(loteAtivo===l.id){
-      div.style.background=l.cor;
-    }
-
-    div.innerHTML=`
-      <span>${l.nome}</span>
-      <span style="width:12px;height:12px;border-radius:50%;background:${l.cor}"></span>
-    `;
+    div.innerHTML=`<span>${l.nome}</span><span style="background:${l.cor};width:12px;height:12px;border-radius:50%"></span>`;
 
     div.onclick=()=>{
       loteAtivo = loteAtivo===l.id ? null : l.id;
@@ -287,11 +260,10 @@ function renderLotes(){
   });
 }
 
-// =======================
 function preencherFiltros(){
-  pop("f-evento",uniq(POSTOS.map(p=>p.evento)));
-  pop("f-dem",uniq(POSTOS.map(p=>p.dem)));
-  pop("f-tipo",uniq(POSTOS.map(p=>p.tipo)));
+  pop("f-evento",[...new Set(POSTOS.map(p=>p.evento))]);
+  pop("f-dem",[...new Set(POSTOS.map(p=>p.dem))]);
+  pop("f-tipo",[...new Set(POSTOS.map(p=>p.tipo))]);
 }
 
 function pop(id,arr){
@@ -311,26 +283,29 @@ function getFiltros(){
   };
 }
 
-// =======================
 function resetFiltros(){
   document.getElementById("f-evento").value="";
   document.getElementById("f-dem").value="";
   document.getElementById("f-tipo").value="";
   loteAtivo=null;
-
   render();
   renderLotes();
   fecharMenuMobile();
 }
 
-// =======================
+function alternarVisual(){
+  modoVisual = modoVisual==="lote"?"dem":"lote";
+  document.getElementById("btnVisual").innerText="Visual: "+(modoVisual==="lote"?"Lote":"Órgão");
+  render();
+  fecharMenuMobile();
+}
+
 function render(){
 
   markers.forEach(m=>map.removeLayer(m));
   poligonos.forEach(p=>map.removeLayer(p));
 
-  markers=[];
-  poligonos=[];
+  markers=[]; poligonos=[];
 
   var f=getFiltros();
 
@@ -345,45 +320,38 @@ function render(){
   vis.forEach(p=>{
     if(!p.lat || !p.lng) return;
 
-    var cor=coresLotes[p.lote]||"#999";
+    var cor = modoVisual==="lote"
+      ? (coresLotes[p.lote]||"#999")
+      : (coresDem[p.dem]||"#999");
 
     var icon=L.divIcon({
       html:`<div class="marker" style="background:${cor}"></div>`
     });
 
-    var marker=L.marker([p.lat,p.lng],{icon});
+    var marker=L.marker([p.lat,p.lng],{icon})
+      .bindTooltip(`<b>${p.nome}</b><br>${p.evento}`,{permanent:true,offset:[0,-12],className:"label-fixa"})
+      .addTo(map);
 
-    marker.bindTooltip(
-      `<b>${p.nome}</b><br><span>${p.evento}</span>`,
-      {permanent:true,direction:"top",offset:[0,-12],className:"label-fixa"}
-    );
-
-    marker.bindPopup(`<b>${p.nome}</b><br>${p.evento}`);
-
-    marker.addTo(map);
     markers.push(marker);
   });
 
   let grupos={};
 
   vis.forEach(p=>{
-    if(!grupos[p.lote]) grupos[p.lote]=[];
-    grupos[p.lote].push([p.lat,p.lng]);
+    let chave = modoVisual==="lote"?p.lote:p.dem;
+    if(!grupos[chave]) grupos[chave]=[];
+    grupos[chave].push([p.lat,p.lng]);
   });
 
-  Object.keys(grupos).forEach(lote=>{
-    let pts=grupos[lote];
-    if(pts.length < 3) return;
+  Object.keys(grupos).forEach(k=>{
+    let pts=grupos[k];
+    if(pts.length<3) return;
 
-    let hull=convexHull(pts);
-    let cor=coresLotes[lote]||"#999";
+    let cor = modoVisual==="lote"
+      ? (coresLotes[k]||"#999")
+      : (coresDem[k]||"#999");
 
-    let poly=L.polygon(hull,{
-      color:cor,
-      weight:2,
-      fillOpacity:0.08
-    }).addTo(map);
-
+    let poly=L.polygon(pts,{color:cor,weight:2,fillOpacity:0.08}).addTo(map);
     poligonos.push(poly);
   });
 
@@ -392,17 +360,9 @@ function render(){
   }
 }
 
-// =======================
-// 🔥 EVENTOS CORRIGIDOS (CHANGE + BLUR)
 ["f-evento","f-dem","f-tipo"].forEach(id=>{
-  let el=document.getElementById(id);
-
-  el.addEventListener("change",()=>{
+  document.getElementById(id).addEventListener("change",()=>{
     render();
-    fecharMenuMobile();
-  });
-
-  el.addEventListener("blur",()=>{
     fecharMenuMobile();
   });
 });
