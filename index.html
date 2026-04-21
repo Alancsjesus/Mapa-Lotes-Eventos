@@ -86,9 +86,7 @@ select,button{
   box-shadow:0 2px 6px rgba(0,0,0,.35);
 }
 
-/* ========================= */
-/* 📱 MOBILE */
-/* ========================= */
+/* MOBILE */
 @media (max-width:768px){
 
   #app{
@@ -176,6 +174,17 @@ function togglePainel(){
 }
 
 // =======================
+// NORMALIZAÇÃO (🔥 CORREÇÃO)
+function normalizar(v){
+  return (v || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .trim()
+    .toLowerCase();
+}
+
+// =======================
 // COR LOTE
 function corLote(i,total){
   return `hsl(${(i*360/total)},70%,50%)`;
@@ -212,18 +221,30 @@ function convexHull(points){
 }
 
 // =======================
+// LIMPEZA
+function limparTexto(v){
+  return (v || "").toString().trim();
+}
+
+function uniq(arr){
+  return [...new Set(
+    arr.map(v => limparTexto(v)).filter(v => v !== "")
+  )];
+}
+
+// =======================
 async function carregarDados(){
   const res=await fetch("https://script.google.com/macros/s/AKfycbzO3CxkaujHwu7Zx7KLqAzjfpUurxY_5IyR6FhqeJRaudKxwjOm9QAFSjEXh1g1H0qvtA/exec");
   const data=await res.json();
 
   POSTOS=data.map(p=>({
-    nome:p["NOMENCLATURA"],
-    evento:p.EVENTO,
-    dem:p.DEMANDA,
-    tipo:p["TIPO DE ESTRUTURA"],
+    nome:limparTexto(p["NOMENCLATURA"]),
+    evento:limparTexto(p.EVENTO),
+    dem:limparTexto(p.DEMANDA || p.Demanda || p.demanda || p.DEMANDANTE),
+    tipo:limparTexto(p["TIPO DE ESTRUTURA"] || p["TIPO ESTRUTURA"]),
     lat:parseFloat(String(p.LATITUDE).replace(",", ".")),
     lng:parseFloat(String(p.LONGITUDE).replace(",", ".")),
-    lote:p["LOTE PROPOSTO"]||"Sem lote"
+    lote:limparTexto(p["LOTE PROPOSTO"]) || "Sem lote"
   }));
 
   gerarLotes();
@@ -266,7 +287,7 @@ function renderLotes(){
       loteAtivo = loteAtivo===l.id ? null : l.id;
       render();
       renderLotes();
-      togglePainel(); // fecha no mobile
+      togglePainel();
     };
 
     el.appendChild(div);
@@ -274,8 +295,6 @@ function renderLotes(){
 }
 
 // =======================
-function uniq(a){return [...new Set(a.filter(v=>v))];}
-
 function preencherFiltros(){
   pop("f-evento",uniq(POSTOS.map(p=>p.evento)));
   pop("f-dem",uniq(POSTOS.map(p=>p.dem)));
@@ -299,16 +318,23 @@ function getFiltros(){
   };
 }
 
+// =======================
 function resetFiltros(){
   document.getElementById("f-evento").value="";
   document.getElementById("f-dem").value="";
   document.getElementById("f-tipo").value="";
   loteAtivo=null;
+
   render();
   renderLotes();
+
+  if(window.innerWidth <= 768){
+    document.getElementById("painel").classList.remove("aberto");
+  }
 }
 
 // =======================
+// 🔥 FILTRO CORRIGIDO
 function render(){
 
   markers.forEach(m=>map.removeLayer(m));
@@ -320,9 +346,9 @@ function render(){
   var f=getFiltros();
 
   var vis=POSTOS.filter(p=>{
-    if(f.evento && p.evento!==f.evento) return false;
-    if(f.dem && p.dem!==f.dem) return false;
-    if(f.tipo && p.tipo!==f.tipo) return false;
+    if(f.evento && normalizar(p.evento)!==normalizar(f.evento)) return false;
+    if(f.dem && normalizar(p.dem)!==normalizar(f.dem)) return false;
+    if(f.tipo && normalizar(p.tipo)!==normalizar(f.tipo)) return false;
     if(loteAtivo && p.lote!==loteAtivo) return false;
     return true;
   });
@@ -377,8 +403,15 @@ function render(){
   }
 }
 
+// =======================
 ["f-evento","f-dem","f-tipo"].forEach(id=>{
-  document.getElementById(id).addEventListener("change",render);
+  document.getElementById(id).addEventListener("change",()=>{
+    render();
+
+    if(window.innerWidth <= 768){
+      document.getElementById("painel").classList.remove("aberto");
+    }
+  });
 });
 
 carregarDados();
