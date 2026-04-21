@@ -89,9 +89,7 @@ select,button{
 /* MOBILE */
 @media (max-width:768px){
 
-  #app{
-    flex-direction:column;
-  }
+  #app{flex-direction:column;}
 
   #painel{
     position:absolute;
@@ -103,17 +101,11 @@ select,button{
     box-shadow:2px 0 10px rgba(0,0,0,.2);
   }
 
-  #painel.aberto{
-    left:0;
-  }
+  #painel.aberto{left:0;}
 
-  #btnMenu{
-    display:block;
-  }
+  #btnMenu{display:block;}
 
-  #map{
-    height:100vh;
-  }
+  #map{height:100vh;}
 
   .leaflet-tooltip.label-fixa{
     font-size:9px;
@@ -155,7 +147,6 @@ select,button{
 
 <script>
 
-// =======================
 var POSTOS=[];
 var LOTES=[];
 var markers=[];
@@ -167,14 +158,21 @@ var map=L.map('map').setView([-12.97,-38.51],12);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// =======================
 // MOBILE MENU
 function togglePainel(){
   document.getElementById("painel").classList.toggle("aberto");
 }
 
-// =======================
-// NORMALIZAÇÃO (🔥 CORREÇÃO)
+// 🔥 FECHAR MENU MOBILE (FUNÇÃO CENTRAL)
+function fecharMenuMobile(){
+  if(window.innerWidth <= 768){
+    setTimeout(()=>{
+      document.getElementById("painel").classList.remove("aberto");
+    },200);
+  }
+}
+
+// NORMALIZAÇÃO
 function normalizar(v){
   return (v || "")
     .toString()
@@ -184,13 +182,11 @@ function normalizar(v){
     .toLowerCase();
 }
 
-// =======================
 // COR LOTE
 function corLote(i,total){
   return `hsl(${(i*360/total)},70%,50%)`;
 }
 
-// =======================
 // CONVEX HULL
 function convexHull(points){
   if(points.length < 3) return points;
@@ -220,16 +216,13 @@ function convexHull(points){
   return lower.concat(upper);
 }
 
-// =======================
 // LIMPEZA
 function limparTexto(v){
   return (v || "").toString().trim();
 }
 
 function uniq(arr){
-  return [...new Set(
-    arr.map(v => limparTexto(v)).filter(v => v !== "")
-  )];
+  return [...new Set(arr.map(v => limparTexto(v)).filter(v => v !== ""))];
 }
 
 // =======================
@@ -287,7 +280,7 @@ function renderLotes(){
       loteAtivo = loteAtivo===l.id ? null : l.id;
       render();
       renderLotes();
-      togglePainel();
+      fecharMenuMobile();
     };
 
     el.appendChild(div);
@@ -327,14 +320,10 @@ function resetFiltros(){
 
   render();
   renderLotes();
-
-  if(window.innerWidth <= 768){
-    document.getElementById("painel").classList.remove("aberto");
-  }
+  fecharMenuMobile();
 }
 
 // =======================
-// 🔥 FILTRO CORRIGIDO
 function render(){
 
   markers.forEach(m=>map.removeLayer(m));
@@ -404,13 +393,17 @@ function render(){
 }
 
 // =======================
+// 🔥 EVENTOS CORRIGIDOS (CHANGE + BLUR)
 ["f-evento","f-dem","f-tipo"].forEach(id=>{
-  document.getElementById(id).addEventListener("change",()=>{
-    render();
+  let el=document.getElementById(id);
 
-    if(window.innerWidth <= 768){
-      document.getElementById("painel").classList.remove("aberto");
-    }
+  el.addEventListener("change",()=>{
+    render();
+    fecharMenuMobile();
+  });
+
+  el.addEventListener("blur",()=>{
+    fecharMenuMobile();
   });
 });
 
