@@ -9,115 +9,168 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#f4f6fb}
-#app{display:flex;height:100vh}
+#app{display:flex;height:100vh;position:relative;overflow:hidden;}
 
-/* OVERLAY */
+/* OVERLAY MOBILE */
 #overlay{
-  position:fixed;
-  top:0;left:0;
+  position:fixed;top:0;left:0;
   width:100%;height:100%;
   background:rgba(0,0,0,0.4);
-  z-index:998;
-  opacity:0;
-  pointer-events:none;
-  transition:.3s;
+  z-index:998;opacity:0;pointer-events:none;transition:.3s;
 }
-#overlay.ativo{
-  opacity:1;
-  pointer-events:auto;
-}
+#overlay.ativo{opacity:1;pointer-events:auto;}
 
 /* PAINEL */
 #painel{
   width:320px;
-  background: linear-gradient(180deg,#1F3864,#2c528c);
-  color:#fff;
-  padding:15px;
-  overflow:auto;
-  transition:.3s;
+  background:linear-gradient(180deg,#1F3864,#2c528c);
+  color:#fff;padding:15px;overflow:auto;transition:.3s;
 }
 
 .titulo{margin:0 0 15px 0;font-size:20px;font-weight:bold;}
 
 .card{
   background:rgba(255,255,255,0.08);
-  padding:12px;
-  border-radius:10px;
+  padding:12px;border-radius:10px;
   margin-bottom:12px;
   box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
 select,button{
-  width:100%;
-  padding:8px;
-  margin-bottom:6px;
-  border-radius:6px;
-  border:none;
+  width:100%;padding:8px;margin-bottom:6px;
+  border-radius:6px;border:none;
 }
-
 select{background:#fff;color:#333;}
-
 .btn{background:#4da3ff;color:#fff;font-weight:bold;cursor:pointer;}
 .btn:hover{background:#6cb5ff;}
 
+/* LOTES */
 .lote{
   padding:8px;margin-bottom:6px;border-radius:6px;
-  display:flex;justify-content:space-between;
-  background:rgba(255,255,255,0.1);
-  color:#fff;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;
 }
+.lote:hover{background:rgba(255,255,255,0.18);}
+.lote.ativo{font-weight:bold;background:rgba(77,163,255,0.25);}
 
-.lote.ativo{font-weight:bold}
+/* MAPA */
+#map{flex:1;position:relative;}
 
-#map{flex:1}
-
-/* BOTÃO */
+/* BOTÃO MENU MOBILE */
 #btnMenu{
-  display:none;
-  position:absolute;
-  top:10px;left:10px;
-  z-index:999;
-  background:#1F3864;
-  color:#fff;
-  border:none;
-  padding:10px;
-  border-radius:8px;
+  display:none;position:absolute;
+  top:10px;left:10px;z-index:999;
+  background:#1F3864;color:#fff;
+  border:none;padding:10px;border-radius:8px;
+  width:auto;margin:0;
 }
+
+/* BOTÃO TOGGLE LABELS */
+#btnLabels{
+  position:absolute;bottom:30px;right:10px;
+  z-index:800;background:#1F3864;color:#fff;
+  border:none;width:auto;padding:8px 12px;
+  border-radius:6px;cursor:pointer;font-size:14px;margin:0;
+}
+#btnLabels:hover{background:#2c528c;}
+#btnLabels.desativo{opacity:0.45;}
 
 /* MARCADOR */
-.marker{
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  border:2px solid #fff;
+.marker{width:16px;height:16px;border-radius:50%;border:2px solid #fff;}
+
+/* TOOLTIP FIXO */
+.leaflet-tooltip.label-fixa{
+  background:rgba(31,56,100,0.92) !important;
+  color:#fff;border:none !important;
+  border-radius:6px;padding:4px 8px;
+  font-size:10px;font-weight:600;
 }
 
-/* TOOLTIP (INALTERADO) */
-.leaflet-tooltip.label-fixa{
-  background: rgba(31,56,100,0.92) !important;
-  color:#fff;
-  border:none !important;
-  border-radius:6px;
-  padding:4px 8px;
-  font-size:10px;
-  font-weight:600;
+/* POPUP */
+.popup-card{font-family:Arial;min-width:180px;}
+.popup-titulo{
+  font-weight:bold;font-size:13px;
+  margin-bottom:6px;color:#1F3864;
+  border-bottom:1px solid #ddd;padding-bottom:4px;
 }
+.popup-tabela{width:100%;border-collapse:collapse;font-size:12px;}
+.popup-tabela td{padding:3px 5px;vertical-align:top;}
+.popup-tabela td:first-child{color:#666;white-space:nowrap;}
+.popup-tabela td:last-child{font-weight:600;color:#222;}
+
+/* SUBMENUS */
+.secao-header{
+  display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;user-select:none;
+  margin:0;padding:0 0 8px 0;
+  font-size:15px;font-weight:bold;
+}
+.secao-seta{transition:transform .25s;font-size:12px;}
+.secao-seta.fechada{transform:rotate(-90deg);}
+.secao-corpo{
+  overflow:hidden;max-height:800px;
+  transition:max-height .35s ease;
+}
+.secao-corpo.fechada{max-height:0;}
+
+/* ESTATÍSTICAS */
+.stats-total{font-size:14px;margin:0 0 8px 0;color:#cde;}
+.stats-subtitulo{
+  font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;color:#aac;margin:6px 0 4px 0;
+}
+.stats-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;}
+.stats-lote-cor{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.stats-nome{flex:1;color:#ddd;}
+.stats-cnt{
+  background:rgba(255,255,255,0.15);
+  padding:1px 7px;border-radius:10px;
+  font-weight:bold;font-size:12px;color:#fff;
+}
+
+/* BANNER DE ERRO */
+#error-banner{
+  background:#c0392b;color:#fff;
+  border-radius:8px;padding:10px 12px;
+  margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;
+}
+#error-banner.oculto{display:none;}
+#error-banner button{
+  background:none;border:none;color:#fff;
+  font-size:18px;cursor:pointer;
+  width:auto;margin:0;padding:0 0 0 10px;
+}
+
+/* LOADING */
+#loading-overlay{
+  position:fixed;inset:0;
+  background:rgba(15,30,60,0.85);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:2000;color:#fff;font-size:16px;gap:14px;
+}
+#loading-overlay.oculto{display:none;}
+.spinner{
+  width:44px;height:44px;
+  border:5px solid rgba(255,255,255,0.25);
+  border-top-color:#4da3ff;
+  border-radius:50%;
+  animation:girar .8s linear infinite;
+}
+@keyframes girar{to{transform:rotate(360deg);}}
 
 /* MOBILE */
 @media (max-width:768px){
   #app{flex-direction:column;}
-
   #painel{
-    position:absolute;
-    left:-100%;
-    top:0;
-    height:100%;
-    width:85%;
-    z-index:1000;
+    position:absolute;left:-100%;top:0;
+    height:100%;width:85%;z-index:1000;
   }
-
   #painel.aberto{left:0;}
   #btnMenu{display:block;}
+  #map{height:100vh;flex:none;}
 }
 </style>
 </head>
@@ -131,28 +184,61 @@ select{background:#fff;color:#333;}
 
 <div id="painel">
 
-<h2 class="titulo">Mapa Inteligente</h2>
+  <h2 class="titulo">Mapa Inteligente</h2>
 
-<div class="card">
-  <h3>🔎 Filtros</h3>
+  <div id="error-banner" class="oculto">
+    <span id="error-msg"></span>
+    <button onclick="document.getElementById('error-banner').classList.add('oculto')">✕</button>
+  </div>
 
-  <select id="f-evento"><option value="">Evento</option></select>
-  <select id="f-dem"><option value="">Órgão</option></select>
-  <select id="f-tipo"><option value="">Tipo</option></select>
+  <!-- FILTROS -->
+  <div class="card">
+    <div class="secao-header" onclick="toggleSecao('corpo-filtros','seta-filtros')">
+      <span>🔎 Filtros</span>
+      <span class="secao-seta" id="seta-filtros">▾</span>
+    </div>
+    <div class="secao-corpo" id="corpo-filtros">
+      <select id="f-evento"><option value="">Evento</option></select>
+      <select id="f-dem"><option value="">Órgão</option></select>
+      <select id="f-tipo"><option value="">Tipo</option></select>
+      <button class="btn" onclick="resetFiltros()">Limpar Filtros</button>
+      <button class="btn" onclick="alternarVisual()" id="btnVisual">Visual: Lote</button>
+    </div>
+  </div>
 
-  <button class="btn" onclick="resetFiltros()">Limpar Filtros</button>
-  <button class="btn" onclick="alternarVisual()" id="btnVisual">Visual: Lote</button>
+  <!-- ESTATÍSTICAS -->
+  <div class="card">
+    <div class="secao-header" onclick="toggleSecao('corpo-stats','seta-stats')">
+      <span>📊 Estatísticas</span>
+      <span class="secao-seta fechada" id="seta-stats">▾</span>
+    </div>
+    <div class="secao-corpo fechada" id="corpo-stats">
+      <div id="painel-stats"></div>
+    </div>
+  </div>
+
+  <!-- LOTES -->
+  <div class="card">
+    <div class="secao-header" onclick="toggleSecao('corpo-lotes','seta-lotes')">
+      <span>🗂️ Lotes</span>
+      <span class="secao-seta" id="seta-lotes">▾</span>
+    </div>
+    <div class="secao-corpo" id="corpo-lotes">
+      <div id="lotes"></div>
+    </div>
+  </div>
+
+</div><!-- /painel -->
+
+<div id="map">
+  <button id="btnLabels" onclick="toggleLabels()" title="Mostrar/ocultar rótulos">🏷️</button>
 </div>
 
-<div class="card">
-  <h3>🗂️ Lotes</h3>
-  <div id="lotes"></div>
-</div>
+</div><!-- /app -->
 
-</div>
-
-<div id="map"></div>
-
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <p>Carregando dados...</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -163,31 +249,30 @@ var POSTOS=[], LOTES=[], markers=[], poligonos=[];
 var loteAtivo=null;
 var coresLotes={}, coresDem={};
 var modoVisual="lote";
+var labelsVisiveis=true;
 
 var map=L.map('map').setView([-12.97,-38.51],12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom:19
+}).addTo(map);
 
-// ===== PAINEL =====
+// ===== PAINEL MOBILE =====
 function abrirPainel(){
   document.getElementById("painel").classList.add("aberto");
   document.getElementById("overlay").classList.add("ativo");
+  setTimeout(()=>map.invalidateSize(),310);
 }
-
 function fecharPainel(){
   document.getElementById("painel").classList.remove("aberto");
   document.getElementById("overlay").classList.remove("ativo");
+  setTimeout(()=>map.invalidateSize(),310);
 }
-
 function fecharMenuMobile(){
-  if(window.innerWidth <= 768){
-    setTimeout(fecharPainel,200);
-  }
+  if(window.innerWidth<=768) setTimeout(fecharPainel,200);
 }
-
-// FECHAR AO CLICAR NO MAPA
 map.on("click",()=>fecharMenuMobile());
 
-// SWIPE
 let startX=null;
 document.addEventListener("touchstart",e=>{startX=e.touches[0].clientX;});
 document.addEventListener("touchend",e=>{
@@ -198,81 +283,151 @@ document.addEventListener("touchend",e=>{
   startX=null;
 });
 
-// ===== RESTANTE (INALTERADO) =====
+// ===== SUBMENUS =====
+function toggleSecao(corpoId,setaId){
+  document.getElementById(corpoId).classList.toggle("fechada");
+  document.getElementById(setaId).classList.toggle("fechada");
+}
+
+// ===== TOGGLE LABELS =====
+function toggleLabels(){
+  labelsVisiveis=!labelsVisiveis;
+  markers.forEach(m=>{
+    if(labelsVisiveis) m.openTooltip();
+    else m.closeTooltip();
+  });
+  var btn=document.getElementById("btnLabels");
+  btn.classList.toggle("desativo",!labelsVisiveis);
+}
+
+// ===== UTILITÁRIOS =====
 function normalizar(v){
-  return (v||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  return (v||"").toString().normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 }
-
 function corLote(i,total){
-  return `hsl(${(i*360/total)},70%,50%)`;
+  return `hsl(${Math.round(i*360/total)},70%,50%)`;
 }
-
 function gerarCoresDem(){
   let nomes=[...new Set(POSTOS.map(p=>p.dem))];
   nomes.forEach((d,i)=>coresDem[d]=corLote(i,nomes.length));
 }
 
+// ===== CARGA DE DADOS =====
 async function carregarDados(){
-  const res=await fetch("https://script.google.com/macros/s/AKfycbzO3CxkaujHwu7Zx7KLqAzjfpUurxY_5IyR6FhqeJRaudKxwjOm9QAFSjEXh1g1H0qvtA/exec");
-  const data=await res.json();
+  document.getElementById("loading-overlay").classList.remove("oculto");
+  try{
+    const res=await fetch("https://script.google.com/macros/s/AKfycbzO3CxkaujHwu7Zx7KLqAzjfpUurxY_5IyR6FhqeJRaudKxwjOm9QAFSjEXh1g1H0qvtA/exec");
+    if(!res.ok) throw new Error(`Erro HTTP ${res.status}`);
+    const data=await res.json();
 
-  POSTOS=data.map(p=>({
-    nome:p["NOMENCLATURA"],
-    evento:p.EVENTO,
-    dem:p.DEMANDA || p.DEMANDANTE,
-    tipo:p["TIPO DE ESTRUTURA"],
-    tipo:p["TIPO ESTRUTURA"],
-    lat:parseFloat(String(p.LATITUDE).replace(",", ".")),
-    lng:parseFloat(String(p.LONGITUDE).replace(",", ".")),
-    lote:p["LOTE PROPOSTO"] || "Sem lote"
-  }));
+    POSTOS=data.map(p=>({
+      nome:  p["NOMENCLATURA"]||"",
+      evento: p.EVENTO||"",
+      dem:   p.DEMANDA||p.DEMANDANTE||"",
+      tipo:  p["TIPO DE ESTRUTURA"]||p["TIPO ESTRUTURA"]||"",
+      lat:   parseFloat(String(p.LATITUDE||"0").replace(",",".")),
+      lng:   parseFloat(String(p.LONGITUDE||"0").replace(",",".")),
+      lote:  p["LOTE PROPOSTO"]||"Sem lote",
+      valor: (function(v){
+        if(!v) return 0;
+        if(typeof v==="number") return v;
+        var s=String(v).replace(/[R$\s]/g,"").trim();
+        return s.includes(",")?parseFloat(s.replace(/\./g,"").replace(",","."))||0:parseFloat(s)||0;
+      })(p.VALOR)
+    }));
 
-  gerarLotes();
-  gerarCoresDem();
-  preencherFiltros();
-  render();
+    gerarLotes();
+    gerarCoresDem();
+    preencherFiltros();
+    render();
+  }catch(err){
+    document.getElementById("error-msg").textContent="Falha ao carregar dados: "+err.message;
+    document.getElementById("error-banner").classList.remove("oculto");
+  }finally{
+    document.getElementById("loading-overlay").classList.add("oculto");
+  }
 }
 
 function gerarLotes(){
   let nomes=[...new Set(POSTOS.map(p=>p.lote))];
   LOTES=nomes.map((l,i)=>({id:l,nome:l,cor:corLote(i,nomes.length)}));
   LOTES.forEach(l=>coresLotes[l.id]=l.cor);
-  renderLotes();
 }
 
+// ===== LISTA DE LOTES =====
 function renderLotes(){
+  var f=getFiltros();
+  var base=POSTOS.filter(p=>{
+    if(f.evento && normalizar(p.evento)!==normalizar(f.evento)) return false;
+    if(f.dem && normalizar(p.dem)!==normalizar(f.dem)) return false;
+    if(f.tipo && normalizar(p.tipo)!==normalizar(f.tipo)) return false;
+    return true;
+  });
+  var contagem={};
+  base.forEach(p=>{contagem[p.lote]=(contagem[p.lote]||0)+1;});
+
   var el=document.getElementById("lotes");
   el.innerHTML="";
-
   LOTES.forEach(l=>{
+    var cnt=contagem[l.id]||0;
     var div=document.createElement("div");
     div.className="lote"+(loteAtivo===l.id?" ativo":"");
-    div.innerHTML=`<span>${l.nome}</span><span style="background:${l.cor};width:12px;height:12px;border-radius:50%"></span>`;
-
+    div.innerHTML=`
+      <span style="display:flex;align-items:center;gap:6px;">
+        <span style="background:${l.cor};width:11px;height:11px;
+          border-radius:50%;flex-shrink:0;display:inline-block"></span>
+        ${l.nome}
+      </span>
+      <span class="stats-cnt">${cnt}</span>`;
     div.onclick=()=>{
-      loteAtivo = loteAtivo===l.id ? null : l.id;
+      loteAtivo=loteAtivo===l.id?null:l.id;
       render();
-      renderLotes();
       fecharMenuMobile();
     };
-
     el.appendChild(div);
   });
 }
 
+// ===== FILTROS =====
 function preencherFiltros(){
-  pop("f-evento",[...new Set(POSTOS.map(p=>p.evento))]);
-  pop("f-dem",[...new Set(POSTOS.map(p=>p.dem))]);
-  pop("f-tipo",[...new Set(POSTOS.map(p=>p.tipo))]);
+  popSelect("f-evento",[...new Set(POSTOS.map(p=>p.evento).filter(Boolean))].sort());
+  popSelect("f-dem",[...new Set(POSTOS.map(p=>p.dem).filter(Boolean))].sort());
+  popSelect("f-tipo",[...new Set(POSTOS.map(p=>p.tipo).filter(Boolean))].sort());
 }
 
-function pop(id,arr){
+function popSelect(id,arr){
   var s=document.getElementById(id);
+  var val=s.value;
+  while(s.options.length>1) s.remove(1);
   arr.forEach(v=>{
     var o=document.createElement("option");
-    o.value=v;o.textContent=v;
+    o.value=v; o.textContent=v;
     s.appendChild(o);
   });
+  if(arr.includes(val)) s.value=val;
+}
+
+function recalcularOpcoes(){
+  var f=getFiltros();
+  var evts=[...new Set(POSTOS.filter(p=>{
+    if(f.dem && normalizar(p.dem)!==normalizar(f.dem)) return false;
+    if(f.tipo && normalizar(p.tipo)!==normalizar(f.tipo)) return false;
+    return true;
+  }).map(p=>p.evento).filter(Boolean))].sort();
+  var dems=[...new Set(POSTOS.filter(p=>{
+    if(f.evento && normalizar(p.evento)!==normalizar(f.evento)) return false;
+    if(f.tipo && normalizar(p.tipo)!==normalizar(f.tipo)) return false;
+    return true;
+  }).map(p=>p.dem).filter(Boolean))].sort();
+  var tipos=[...new Set(POSTOS.filter(p=>{
+    if(f.evento && normalizar(p.evento)!==normalizar(f.evento)) return false;
+    if(f.dem && normalizar(p.dem)!==normalizar(f.dem)) return false;
+    return true;
+  }).map(p=>p.tipo).filter(Boolean))].sort();
+
+  popSelect("f-evento",evts);
+  popSelect("f-dem",dems);
+  popSelect("f-tipo",tipos);
 }
 
 function getFiltros(){
@@ -284,31 +439,94 @@ function getFiltros(){
 }
 
 function resetFiltros(){
-  document.getElementById("f-evento").value="";
-  document.getElementById("f-dem").value="";
-  document.getElementById("f-tipo").value="";
+  ["f-evento","f-dem","f-tipo"].forEach(id=>document.getElementById(id).value="");
   loteAtivo=null;
+  preencherFiltros();
   render();
-  renderLotes();
   fecharMenuMobile();
 }
 
 function alternarVisual(){
-  modoVisual = modoVisual==="lote"?"dem":"lote";
+  modoVisual=modoVisual==="lote"?"dem":"lote";
   document.getElementById("btnVisual").innerText="Visual: "+(modoVisual==="lote"?"Lote":"Órgão");
   render();
   fecharMenuMobile();
 }
 
-function render(){
+// ===== ESTATÍSTICAS =====
+function renderEstatisticas(){
+  var f=getFiltros();
+  var vis=POSTOS.filter(p=>{
+    if(f.evento && normalizar(p.evento)!==normalizar(f.evento)) return false;
+    if(f.dem && normalizar(p.dem)!==normalizar(f.dem)) return false;
+    if(f.tipo && normalizar(p.tipo)!==normalizar(f.tipo)) return false;
+    if(loteAtivo && p.lote!==loteAtivo) return false;
+    return true;
+  });
 
+  var porLote={};
+  vis.forEach(p=>{
+    if(!porLote[p.lote]) porLote[p.lote]={cnt:0,val:0};
+    porLote[p.lote].cnt++;
+    porLote[p.lote].val+=p.valor||0;
+  });
+  var porTipo={};
+  vis.forEach(p=>{var t=p.tipo||"Sem tipo";porTipo[t]=(porTipo[t]||0)+1;});
+
+  var totalVal=vis.reduce((s,p)=>s+(p.valor||0),0);
+  var fmtBRL=v=>v>0?v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}):"—";
+
+  document.getElementById("painel-stats").innerHTML=`
+    <p class="stats-total">Total visível: <strong>${vis.length}</strong> estrutura${vis.length!==1?"s":""}</p>
+    ${totalVal>0?`<p class="stats-total" style="margin-top:2px">Valor estimado: <strong>${fmtBRL(totalVal)}</strong></p>`:""}
+    <p class="stats-subtitulo">Por lote</p>
+    ${Object.entries(porLote).sort((a,b)=>b[1].val-a[1].val).map(([lote,d])=>`
+      <div class="stats-row">
+        <span class="stats-lote-cor" style="background:${coresLotes[lote]||"#999"}"></span>
+        <span class="stats-nome">${lote}</span>
+        <span class="stats-cnt">${d.cnt}</span>
+      </div>
+      ${d.val>0?`<div class="stats-row" style="padding-left:16px;margin-top:-2px">
+        <span class="stats-nome" style="font-size:11px;color:#9bc">${fmtBRL(d.val)}</span>
+      </div>`:""}`)
+    .join("")}
+    <p class="stats-subtitulo" style="margin-top:10px">Por tipo</p>
+    ${Object.entries(porTipo).sort((a,b)=>b[1]-a[1]).map(([tipo,cnt])=>`
+      <div class="stats-row">
+        <span class="stats-nome">${tipo}</span>
+        <span class="stats-cnt">${cnt}</span>
+      </div>`).join("")}`;
+}
+
+// ===== CONVEX HULL (Andrew's monotone chain) =====
+// pts: array de [lat, lng] — retorna apenas os vértices do perímetro externo
+function convexHull(pts){
+  if(pts.length<3) return pts;
+  // ordena por longitude (x), depois latitude (y)
+  var s=pts.slice().sort((a,b)=>a[1]!==b[1]?a[1]-b[1]:a[0]-b[0]);
+  function cross(O,A,B){
+    return (A[1]-O[1])*(B[0]-O[0])-(A[0]-O[0])*(B[1]-O[1]);
+  }
+  var lo=[], hi=[];
+  for(var i=0;i<s.length;i++){
+    while(lo.length>=2&&cross(lo[lo.length-2],lo[lo.length-1],s[i])<=0) lo.pop();
+    lo.push(s[i]);
+  }
+  for(var i=s.length-1;i>=0;i--){
+    while(hi.length>=2&&cross(hi[hi.length-2],hi[hi.length-1],s[i])<=0) hi.pop();
+    hi.push(s[i]);
+  }
+  lo.pop(); hi.pop();
+  return lo.concat(hi);
+}
+
+// ===== RENDER MAPA =====
+function render(){
   markers.forEach(m=>map.removeLayer(m));
   poligonos.forEach(p=>map.removeLayer(p));
-
-  markers=[]; poligonos=[];
+  markers=[];poligonos=[];
 
   var f=getFiltros();
-
   var vis=POSTOS.filter(p=>{
     if(f.evento && normalizar(p.evento)!==normalizar(f.evento)) return false;
     if(f.dem && normalizar(p.dem)!==normalizar(f.dem)) return false;
@@ -318,50 +536,57 @@ function render(){
   });
 
   vis.forEach(p=>{
-    if(!p.lat || !p.lng) return;
-
-    var cor = modoVisual==="lote"
-      ? (coresLotes[p.lote]||"#999")
-      : (coresDem[p.dem]||"#999");
-
-    var icon=L.divIcon({
-      html:`<div class="marker" style="background:${cor}"></div>`
-    });
+    if(!p.lat||!p.lng) return;
+    var cor=modoVisual==="lote"?(coresLotes[p.lote]||"#999"):(coresDem[p.dem]||"#999");
+    var icon=L.divIcon({html:`<div class="marker" style="background:${cor}"></div>`});
 
     var marker=L.marker([p.lat,p.lng],{icon})
-      .bindTooltip(`<b>${p.nome}</b><br>${p.evento}`,{permanent:true,offset:[0,-12],className:"label-fixa"})
+      .bindTooltip(`<b>${p.nome}</b><br>${p.evento}`,{
+        permanent:true,offset:[0,-12],className:"label-fixa"
+      })
+      .bindPopup(`<div class="popup-card">
+        <div class="popup-titulo">${p.nome}</div>
+        <table class="popup-tabela">
+          <tr><td>Evento</td><td>${p.evento||"—"}</td></tr>
+          <tr><td>Órgão</td><td>${p.dem||"—"}</td></tr>
+          <tr><td>Tipo</td><td>${p.tipo||"—"}</td></tr>
+          <tr><td>Lote</td><td>${p.lote||"—"}</td></tr>
+          ${p.valor>0?`<tr><td>Valor est.</td><td>${p.valor.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</td></tr>`:""}
+        </table>
+      </div>`,{maxWidth:240})
       .addTo(map);
 
+    if(!labelsVisiveis) marker.closeTooltip();
     markers.push(marker);
   });
 
   let grupos={};
-
   vis.forEach(p=>{
-    let chave = modoVisual==="lote"?p.lote:p.dem;
+    if(!p.lat||!p.lng) return;
+    let chave=modoVisual==="lote"?p.lote:p.dem;
     if(!grupos[chave]) grupos[chave]=[];
     grupos[chave].push([p.lat,p.lng]);
   });
-
   Object.keys(grupos).forEach(k=>{
     let pts=grupos[k];
     if(pts.length<3) return;
-
-    let cor = modoVisual==="lote"
-      ? (coresLotes[k]||"#999")
-      : (coresDem[k]||"#999");
-
-    let poly=L.polygon(pts,{color:cor,weight:2,fillOpacity:0.08}).addTo(map);
-    poligonos.push(poly);
+    let hull=convexHull(pts);
+    if(hull.length<3) return;
+    let cor=modoVisual==="lote"?(coresLotes[k]||"#999"):(coresDem[k]||"#999");
+    poligonos.push(L.polygon(hull,{color:cor,weight:2,fillOpacity:0.08}).addTo(map));
   });
 
-  if(vis.length){
-    map.fitBounds(vis.map(p=>[p.lat,p.lng]));
-  }
+  var coords=vis.filter(p=>p.lat&&p.lng).map(p=>[p.lat,p.lng]);
+  if(coords.length) map.fitBounds(coords);
+
+  renderLotes();
+  renderEstatisticas();
 }
 
+// ===== LISTENERS =====
 ["f-evento","f-dem","f-tipo"].forEach(id=>{
   document.getElementById(id).addEventListener("change",()=>{
+    recalcularOpcoes();
     render();
     fecharMenuMobile();
   });
@@ -370,6 +595,5 @@ function render(){
 carregarDados();
 
 </script>
-
 </body>
 </html>
